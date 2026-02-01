@@ -195,9 +195,15 @@ export const tasks = [
 export const activity = [
   {
     type: "completed",
+    action: "updated",
+    task: "Conrad P. Foss Memorial → HOOPSEEN circuit",
+    time: "Just now"
+  },
+  {
+    type: "completed",
     action: "added",
     task: "Full Venue Addresses (Village Park, Wiregrass, Big House)",
-    time: "Just now"
+    time: "10 minutes ago"
   },
   {
     type: "completed",
