@@ -195,9 +195,15 @@ export const tasks = [
 export const activity = [
   {
     type: "completed",
+    action: "added",
+    task: "Password protection to Wolf's Den",
+    time: "Just now"
+  },
+  {
+    type: "completed",
     action: "created",
     task: "Wolf's Den resource page with forms & links",
-    time: "Just now"
+    time: "15 minutes ago"
   },
   {
     type: "completed",
