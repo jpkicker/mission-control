@@ -147,6 +147,15 @@ export const tasks = [
     date: "Feb 1",
     completedThisWeek: true
   },
+  {
+    id: 21,
+    title: "Add full venue addresses",
+    description: "Village Park, Wiregrass Ranch, Big House - full addresses in both views",
+    project: "Wolves",
+    status: "done",
+    date: "Feb 1",
+    completedThisWeek: true
+  },
   
   // WISHLIST
   {
@@ -187,8 +196,14 @@ export const activity = [
   {
     type: "completed",
     action: "added",
-    task: "Clickable Modal to Calendar View",
+    task: "Full Venue Addresses (Village Park, Wiregrass, Big House)",
     time: "Just now"
+  },
+  {
+    type: "completed",
+    action: "added",
+    task: "Clickable Modal to Calendar View",
+    time: "5 minutes ago"
   },
   {
     type: "completed",
