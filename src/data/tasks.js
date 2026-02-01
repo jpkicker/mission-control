@@ -195,9 +195,21 @@ export const tasks = [
 export const activity = [
   {
     type: "completed",
+    action: "created",
+    task: "Wolf's Den resource page with forms & links",
+    time: "Just now"
+  },
+  {
+    type: "completed",
+    action: "created",
+    task: "6 Gmail drafts for player registration emails",
+    time: "10 minutes ago"
+  },
+  {
+    type: "completed",
     action: "updated",
     task: "Nick Cruz jersey number → #99",
-    time: "Just now"
+    time: "20 minutes ago"
   },
   {
     type: "completed",
