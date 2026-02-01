@@ -93,15 +93,59 @@ export const tasks = [
     date: "Feb 1",
     completedThisWeek: true
   },
-  
-  // IN PROGRESS
   {
     id: 11,
     title: "Build Mission Control dashboard",
     description: "Kanban board + activity feed for task tracking",
     project: "Clawdbot",
-    status: "in-progress",
-    date: "Feb 1"
+    status: "done",
+    date: "Feb 1",
+    completedThisWeek: true
+  },
+  {
+    id: 16,
+    title: "Create Wolves flight options CSV",
+    description: "Flight routes, times, airlines for all tournaments in Google Drive",
+    project: "Wolves",
+    status: "done",
+    date: "Feb 1",
+    completedThisWeek: true
+  },
+  {
+    id: 17,
+    title: "Fix OTR tournament names",
+    description: "Updated Sweet 16 in ATL (May) and Power 24 in Cartersville (July)",
+    project: "Wolves",
+    status: "done",
+    date: "Feb 1",
+    completedThisWeek: true
+  },
+  {
+    id: 18,
+    title: "Add calendar view to schedule",
+    description: "Toggle between list and calendar view on Wolves website",
+    project: "Wolves",
+    status: "done",
+    date: "Feb 1",
+    completedThisWeek: true
+  },
+  {
+    id: 19,
+    title: "Add clickable modal to calendar",
+    description: "Events now open detail popup like list view accordion",
+    project: "Wolves",
+    status: "done",
+    date: "Feb 1",
+    completedThisWeek: true
+  },
+  {
+    id: 20,
+    title: "Update March Madness venue",
+    description: "Set venue to Village Park in Wellington",
+    project: "Wolves",
+    status: "done",
+    date: "Feb 1",
+    completedThisWeek: true
   },
   
   // WISHLIST
@@ -141,57 +185,57 @@ export const tasks = [
 
 export const activity = [
   {
-    type: "started",
-    action: "started building",
-    task: "Mission Control Dashboard",
+    type: "completed",
+    action: "added",
+    task: "Clickable Modal to Calendar View",
     time: "Just now"
+  },
+  {
+    type: "completed",
+    action: "updated",
+    task: "March Madness Venue → Village Park",
+    time: "2 minutes ago"
+  },
+  {
+    type: "completed",
+    action: "added",
+    task: "Calendar View to Wolves Schedule",
+    time: "5 minutes ago"
+  },
+  {
+    type: "completed",
+    action: "fixed",
+    task: "OTR Tournament Names (Sweet 16 & Power 24)",
+    time: "10 minutes ago"
+  },
+  {
+    type: "completed",
+    action: "created",
+    task: "Flight Options CSV in Google Drive",
+    time: "15 minutes ago"
+  },
+  {
+    type: "completed",
+    action: "completed",
+    task: "Mission Control Dashboard",
+    time: "30 minutes ago"
   },
   {
     type: "completed",
     action: "completed",
     task: "Bitcoin News Cron Job",
-    time: "10 minutes ago"
+    time: "1 hour ago"
   },
   {
     type: "completed",
     action: "configured",
     task: "Sonnet for Sub-agents",
-    time: "15 minutes ago"
-  },
-  {
-    type: "completed",
-    action: "updated",
-    task: "Memory & Session Settings",
-    time: "20 minutes ago"
+    time: "1 hour ago"
   },
   {
     type: "completed",
     action: "set up",
     task: "Wolves Website Repo",
-    time: "30 minutes ago"
-  },
-  {
-    type: "completed",
-    action: "updated",
-    task: "Jason's Profile (USER.md)",
-    time: "35 minutes ago"
-  },
-  {
-    type: "completed",
-    action: "quoted",
-    task: "Joey @ Southland - 3080V Dwell",
-    time: "Yesterday"
-  },
-  {
-    type: "completed",
-    action: "quoted",
-    task: "Eric @ Floors Direct - Irene Walnut",
-    time: "Yesterday"
-  },
-  {
-    type: "created",
-    action: "created",
-    task: "Quote Log Workflow",
-    time: "Yesterday"
+    time: "2 hours ago"
   }
 ];
