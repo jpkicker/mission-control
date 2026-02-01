@@ -195,9 +195,15 @@ export const tasks = [
 export const activity = [
   {
     type: "completed",
+    action: "added",
+    task: "March Madness → US Amateur Basketball with logo",
+    time: "Just now"
+  },
+  {
+    type: "completed",
     action: "updated",
     task: "Conrad P. Foss Memorial → HOOPSEEN circuit",
-    time: "Just now"
+    time: "15 minutes ago"
   },
   {
     type: "completed",
