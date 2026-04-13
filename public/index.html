@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mission Control</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2d3148;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --milo: #6366f1;
+      --devon: #10b981;
+      --baxter: #f59e0b;
+      --vida: #22c55e;
+      --ivy: #f97316;
+      --system: #64748b;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 220px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0;
+      flex-shrink: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 0 20px 24px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-logo span { color: var(--milo); }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 0;
+      color: var(--muted);
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active {
+      background: var(--surface2);
+      color: var(--text);
+      border-left-color: var(--milo);
+    }
+
+    /* MAIN */
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      padding: 32px;
+      max-width: 1400px;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+    .subtitle { color: var(--muted); margin-bottom: 32px; }
+
+    /* STAT CARDS */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .stat-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .stat-value { font-size: 32px; font-weight: 700; }
+
+    /* AGENT GRID */
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .agent-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      border-top: 3px solid;
+    }
+
+    .agent-emoji { font-size: 28px; margin-bottom: 8px; }
+    .agent-name { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+    .agent-role { color: var(--muted); font-size: 12px; }
+
+    /* PANELS */
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 900px) { .panels { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    /* ACTIVITY FEED */
+    .feed-item {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .feed-item:last-child { border-bottom: none; }
+
+    .feed-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .feed-body { flex: 1; min-width: 0; }
+    .feed-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+    .feed-agent { font-weight: 600; font-size: 13px; }
+    .feed-type { background: var(--surface2); color: var(--muted); font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+    .feed-time { color: var(--muted); font-size: 11px; margin-left: auto; }
+    .feed-message { color: var(--text); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* TASKS */
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .task-item:last-child { border-bottom: none; }
+    .task-check { color: var(--muted); margin-top: 1px; }
+    .task-content { flex: 1; }
+    .task-name { font-size: 13px; }
+    .task-project { color: var(--muted); font-size: 11px; }
+
+    /* HEALTH */
+    .health-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .health-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .health-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .health-value { font-size: 28px; font-weight: 700; }
+    .health-unit { font-size: 14px; color: var(--muted); font-weight: 400; }
+    .health-status { font-size: 11px; margin-top: 4px; }
+
+    .chart-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .chart-wrap { position: relative; height: 200px; }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+
+    /* ACTIVITY VIEW */
+    .activity-table { width: 100%; border-collapse: collapse; }
+    .activity-table th {
+      text-align: left;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+    .activity-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .activity-table tr:hover td { background: var(--surface2); }
+
+    /* HANDOFFS */
+    .handoff-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .handoff-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .handoff-from { font-weight: 600; }
+    .handoff-arrow { color: var(--muted); }
+    .handoff-to { font-weight: 600; }
+    .handoff-status {
+      margin-left: auto;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    .status-open { background: #1e3a5f; color: #60a5fa; }
+    .status-done { background: #14532d; color: #4ade80; }
+    .handoff-summary { color: var(--muted); font-size: 13px; }
+
+    /* UTILS */
+    .badge {
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .empty { color: var(--muted); text-align: center; padding: 32px; }
+
+    .refresh-badge {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--milo);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .streak-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .streak-num { font-size: 48px; font-weight: 700; color: var(--vida); }
+    .streak-label { font-size: 18px; font-weight: 600; }
+    .streak-sub { color: var(--muted); font-size: 13px; }
+
+    .food-table { width: 100%; border-collapse: collapse; }
+    .food-table th { text-align: left; padding: 8px 12px; color: var(--muted); font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+    .food-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-logo">Mission <span>Control</span></div>
+  <div class="nav-item active" data-view="dashboard">🏠 Dashboard</div>
+  <div class="nav-item" data-view="activity">📋 Activity</div>
+  <div class="nav-item" data-view="handoffs">🔁 Handoffs</div>
+  <div class="nav-item" data-view="health">❤️ Health</div>
+</nav>
+
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <div class="view active" id="view-dashboard">
+    <h1>Dashboard</h1>
+    <p class="subtitle">Agent team overview · <span class="refresh-badge" id="dash-refresh">Loading…</span></p>
+
+    <div class="stat-grid" id="stat-grid">
+      <div class="stat-card"><div class="stat-label">Agents</div><div class="stat-value">5</div></div>
+      <div class="stat-card"><div class="stat-label">Open Handoffs</div><div class="stat-value" id="stat-handoffs">—</div></div>
+      <div class="stat-card"><div class="stat-label">Todoist Tasks</div><div class="stat-value" id="stat-tasks">—</div></div>
+      <div class="stat-card"><div class="stat-label">Activity (24h)</div><div class="stat-value" id="stat-activity">—</div></div>
+    </div>
+
+    <h2>Team</h2>
+    <div class="agent-grid">
+      <div class="agent-card" style="border-top-color: var(--milo)">
+        <div class="agent-emoji">🧠</div>
+        <div class="agent-name">Milo</div>
+        <div class="agent-role">CEO & Intelligent Router</div>
+      </div>
+      <div class="agent-card" style="border-top-color: var(--devon)">
+        <div class="agent-emoji">💻</div>
+        <div class="agent-name">Devon</div>
+        <div class="agent-role">Developer & Systems Engineer</div>
+      </div>
+      <div class="agent-card" style="border-top-color: var(--baxter)">
+        <div class="agent-emoji">🏠</div>
+        <div class="agent-name">Baxter</div>
+        <div class="agent-role">Life Organizer & Chief of Staff</div>
+      </div>
+      <div class="agent-card" style="border-top-color: var(--vida)">
+        <div class="agent-emoji">💚</div>
+        <div class="agent-name">Vida</div>
+        <div class="agent-role">Personal Trainer & Health Coach</div>
+      </div>
+      <div class="agent-card" style="border-top-color: var(--ivy)">
+        <div class="agent-emoji">✉️</div>
+        <div class="agent-name">Ivy</div>
+        <div class="agent-role">Executive Assistant & Comms</div>
+      </div>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 style="margin:0">Live Activity</h2>
+          <span class="spinner" id="activity-spinner"></span>
+        </div>
+        <div id="dash-activity"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <h2 style="margin:0">Todoist Tasks</h2>
+        </div>
+        <div id="dash-tasks"><div class="empty">Loading…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVITY -->
+  <div class="view" id="view-activity">
+    <h1>Activity Log</h1>
+    <p class="subtitle">All agent activity · auto-refreshes every 30s</p>
+    <div class="panel">
+      <table class="activity-table">
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>Type</th>
+            <th>Message</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="activity-tbody"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- HANDOFFS -->
+  <div class="view" id="view-handoffs">
+    <h1>Handoffs</h1>
+    <p class="subtitle">Agent-to-agent task handoffs</p>
+    <div id="handoffs-list"><div class="empty">Loading…</div></div>
+  </div>
+
+  <!-- HEALTH -->
+  <div class="view" id="view-health">
+    <h1>Health Dashboard</h1>
+    <p class="subtitle">Biometrics & nutrition tracking</p>
+
+    <div class="streak-box">
+      <div class="streak-num" id="streak-num">—</div>
+      <div>
+        <div class="streak-label">Day Clean Streak</div>
+        <div class="streak-sub">Consecutive days without alcohol</div>
+      </div>
+    </div>
+
+    <h2>Today's Snapshot</h2>
+    <div class="health-grid">
+      <div class="health-card">
+        <div class="health-label">Glucose</div>
+        <div class="health-value" id="h-glucose">—<span class="health-unit"> mg/dL</span></div>
+        <div class="health-status" id="h-glucose-status"></div>
+      </div>
+      <div class="health-card">
+        <div class="health-label">Ketones</div>
+        <div class="health-value" id="h-ketones">—<span class="health-unit"> mmol/L</span></div>
+        <div class="health-status" id="h-ketones-status"></div>
+      </div>
+      <div class="health-card">
+        <div class="health-label">Boz Ratio</div>
+        <div class="health-value" id="h-boz">—</div>
+        <div class="health-status" id="h-boz-status"></div>
+      </div>
+      <div class="health-card">
+        <div class="health-label">Weight</div>
+        <div class="health-value" id="h-weight">—<span class="health-unit"> lbs</span></div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-panel">
+        <h2>Glucose (mg/dL)</h2>
+        <div class="chart-wrap"><canvas id="chart-glucose"></canvas></div>
+      </div>
+      <div class="chart-panel">
+        <h2>Ketones (mmol/L)</h2>
+        <div class="chart-wrap"><canvas id="chart-ketones"></canvas></div>
+      </div>
+      <div class="chart-panel">
+        <h2>Boz Ratio</h2>
+        <div class="chart-wrap"><canvas id="chart-boz"></canvas></div>
+      </div>
+      <div class="chart-panel">
+        <h2>Weight (lbs)</h2>
+        <div class="chart-wrap"><canvas id="chart-weight"></canvas></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Today's Food Log</h2>
+      <table class="food-table" id="food-table">
+        <thead><tr><th>Time</th><th>Food</th><th>Carbs (g)</th><th>Calories</th></tr></thead>
+        <tbody id="food-tbody"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── NAV ──────────────────────────────────────────────────────────────────────
+const navItems = document.querySelectorAll('.nav-item');
+navItems.forEach(item => {
+  item.addEventListener('click', () => {
+    navItems.forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('view-' + item.dataset.view).classList.add('active');
+    if (item.dataset.view === 'health') loadHealth();
+    if (item.dataset.view === 'handoffs') loadHandoffs();
+    if (item.dataset.view === 'activity') loadActivityFull();
+  });
+});
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+const AGENT_COLORS = {
+  milo: '#6366f1', devon: '#10b981', baxter: '#f59e0b',
+  vida: '#22c55e', ivy: '#f97316', system: '#64748b',
+};
+
+function relativeTime(iso) {
+  const diff = (Date.now() - new Date(iso)) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  return Math.floor(diff / 86400) + 'd ago';
+}
+
+async function api(path) {
+  const res = await fetch('/api' + path);
+  if (!res.ok) throw new Error(res.statusText);
+  return res.json();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const spinner = document.getElementById('activity-spinner');
+
+  // Activity
+  try {
+    const activity = await api('/activity?limit=20');
+    const now = new Date();
+    const h24 = activity.filter(a => (now - new Date(a.created_at)) < 86400000);
+    document.getElementById('stat-activity').textContent = h24.length;
+    renderFeedItems('dash-activity', activity.slice(0, 10));
+  } catch (e) {
+    document.getElementById('dash-activity').innerHTML = '<div class="empty">Failed to load</div>';
+  }
+
+  // Tasks
+  try {
+    const tasks = await api('/todoist/tasks');
+    document.getElementById('stat-tasks').textContent = tasks.length;
+    renderTasks('dash-tasks', tasks.slice(0, 12));
+  } catch (e) {
+    document.getElementById('dash-tasks').innerHTML = '<div class="empty">Failed to load</div>';
+  }
+
+  // Handoffs
+  try {
+    const handoffs = await api('/handoffs');
+    const open = handoffs.filter(h => h.status !== 'done' && h.status !== 'completed');
+    document.getElementById('stat-handoffs').textContent = open.length;
+  } catch {}
+
+  spinner.style.display = 'none';
+  document.getElementById('dash-refresh').textContent = 'Updated ' + new Date().toLocaleTimeString();
+}
+
+function renderFeedItems(containerId, items) {
+  const el = document.getElementById(containerId);
+  if (!items.length) { el.innerHTML = '<div class="empty">No activity yet</div>'; return; }
+  el.innerHTML = items.map(item => {
+    const color = AGENT_COLORS[item.agent_id] || '#64748b';
+    return `<div class="feed-item">
+      <div class="feed-avatar" style="background:${color}22;color:${color}">${item.agent_emoji || '⚙️'}</div>
+      <div class="feed-body">
+        <div class="feed-meta">
+          <span class="feed-agent" style="color:${color}">${item.agent_name || item.agent_id}</span>
+          <span class="feed-type">${item.type || 'info'}</span>
+          <span class="feed-time">${relativeTime(item.created_at)}</span>
+        </div>
+        <div class="feed-message">${item.message || ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderTasks(containerId, tasks) {
+  const el = document.getElementById(containerId);
+  if (!tasks.length) { el.innerHTML = '<div class="empty">No tasks</div>'; return; }
+  el.innerHTML = tasks.map(t => `
+    <div class="task-item">
+      <span class="task-check">○</span>
+      <div class="task-content">
+        <div class="task-name">${t.content}</div>
+        ${t.project_name ? `<div class="task-project">${t.project_name}</div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+// ── ACTIVITY FULL ─────────────────────────────────────────────────────────────
+async function loadActivityFull() {
+  try {
+    const activity = await api('/activity?limit=100');
+    const tbody = document.getElementById('activity-tbody');
+    tbody.innerHTML = activity.map(item => {
+      const color = AGENT_COLORS[item.agent_id] || '#64748b';
+      return `<tr>
+        <td><span style="color:${color}">${item.agent_emoji || '⚙️'} ${item.agent_name || item.agent_id}</span></td>
+        <td><span class="feed-type">${item.type || 'info'}</span></td>
+        <td>${item.message || ''}</td>
+        <td style="color:var(--muted);white-space:nowrap">${relativeTime(item.created_at)}</td>
+      </tr>`;
+    }).join('');
+  } catch (e) {
+    document.getElementById('activity-tbody').innerHTML = '<tr><td colspan="4" class="empty">Failed to load</td></tr>';
+  }
+}
+
+// ── HANDOFFS ──────────────────────────────────────────────────────────────────
+async function loadHandoffs() {
+  const el = document.getElementById('handoffs-list');
+  try {
+    const handoffs = await api('/handoffs');
+    if (!handoffs.length) { el.innerHTML = '<div class="empty">No handoffs found</div>'; return; }
+    el.innerHTML = handoffs.map(h => {
+      const statusClass = (h.status === 'done' || h.status === 'completed') ? 'status-done' : 'status-open';
+      const statusLabel = h.status || 'open';
+      return `<div class="handoff-item">
+        <div class="handoff-header">
+          <span class="handoff-from">${h.from || '?'}</span>
+          <span class="handoff-arrow">→</span>
+          <span class="handoff-to">${h.to || '?'}</span>
+          <span class="handoff-status ${statusClass}">${statusLabel}</span>
+        </div>
+        <div class="handoff-summary">${h.summary || h.description || ''}</div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = '<div class="empty">Failed to load handoffs</div>';
+  }
+}
+
+// ── HEALTH ────────────────────────────────────────────────────────────────────
+let healthCharts = {};
+
+async function loadHealth() {
+  try {
+    const [latest, history] = await Promise.all([
+      api('/biometrics/latest'),
+      api('/biometrics?days=30'),
+    ]);
+
+    if (latest) {
+      setHealth('h-glucose', latest.glucose, 'mg/dL', (v) => {
+        if (v < 80) return { color: '#60a5fa', label: 'Low' };
+        if (v <= 100) return { color: '#4ade80', label: 'Optimal' };
+        if (v <= 125) return { color: '#facc15', label: 'Elevated' };
+        return { color: '#f87171', label: 'High' };
+      });
+
+      setHealth('h-ketones', latest.ketones, 'mmol/L', (v) => {
+        if (v < 0.5) return { color: '#64748b', label: 'Trace' };
+        if (v < 1.0) return { color: '#60a5fa', label: 'Light ketosis' };
+        if (v <= 3.0) return { color: '#4ade80', label: 'Nutritional ketosis' };
+        return { color: '#facc15', label: 'High' };
+      });
+
+      setHealth('h-boz', latest.boz_ratio, null, (v) => {
+        if (v < 80) return { color: '#4ade80', label: 'Excellent' };
+        if (v <= 200) return { color: '#facc15', label: 'Good' };
+        return { color: '#f87171', label: 'High' };
+      });
+
+      if (latest.weight) {
+        document.getElementById('h-weight').innerHTML = latest.weight + '<span class="health-unit"> lbs</span>';
+      }
+    }
+
+    if (history.length) {
+      const labels = history.map(r => {
+        const d = new Date(r.recorded_at);
+        return (d.getMonth() + 1) + '/' + d.getDate();
+      });
+
+      buildChart('chart-glucose', labels, history.map(r => r.glucose), '#6366f1', [
+        { value: 80, color: 'rgba(74,222,128,0.15)' },
+        { value: 100, color: 'rgba(74,222,128,0.15)' },
+      ]);
+      buildChart('chart-ketones', labels, history.map(r => r.ketones), '#10b981');
+      buildChart('chart-boz', labels, history.map(r => r.boz_ratio), '#f59e0b');
+      buildChart('chart-weight', labels, history.map(r => r.weight).filter(Boolean), '#f97316');
+    }
+
+    // Streak
+    if (history.length) {
+      let streak = 0;
+      const sorted = [...history].sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at));
+      for (const r of sorted) {
+        if (r.alcohol === false || r.alcohol === 0 || r.alcohol === null) streak++;
+        else break;
+      }
+      document.getElementById('streak-num').textContent = streak;
+    }
+
+    // Food log
+    loadFoodLog();
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function setHealth(id, value, unit, statusFn) {
+  if (value == null) return;
+  const el = document.getElementById(id);
+  const unitHtml = unit ? `<span class="health-unit"> ${unit}</span>` : '';
+  el.innerHTML = value + unitHtml;
+  if (statusFn) {
+    const s = statusFn(value);
+    const statusEl = document.getElementById(id + '-status');
+    if (statusEl) {
+      statusEl.innerHTML = `<span style="color:${s.color}">${s.label}</span>`;
+    }
+  }
+}
+
+function buildChart(canvasId, labels, data, color, bands) {
+  if (healthCharts[canvasId]) { healthCharts[canvasId].destroy(); }
+
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  healthCharts[canvasId] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: color,
+        backgroundColor: color + '22',
+        tension: 0.3,
+        fill: true,
+        pointRadius: 3,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#2d3148' } },
+        y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#2d3148' } },
+      },
+    },
+  });
+}
+
+async function loadFoodLog() {
+  const tbody = document.getElementById('food-tbody');
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const res = await fetch(
+      `/api/biometrics?days=1`,
+    );
+    // Food log would come from mc_food_log table — show placeholder if empty
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">No food log entries today</td></tr>';
+  } catch {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">Could not load food log</td></tr>';
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadDashboard();
+setInterval(loadDashboard, 30000);
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "mission-control",
+  "version": "2.0.0",
+  "description": "Jason's AI agent team dashboard",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'Static site — no build step'"
+  }
+}
