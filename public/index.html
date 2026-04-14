@@ -431,11 +431,11 @@
 
     <div class="stat-grid" id="trading-stats">
       <div class="stat-card">
-        <div class="stat-label">Balance</div>
+        <div class="stat-label">Cash Balance</div>
         <div class="stat-value" id="t-balance">—</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Net P&L</div>
+        <div class="stat-label">Net P&L (cash)</div>
         <div class="stat-value" id="t-pnl">—</div>
       </div>
       <div class="stat-card">
@@ -443,7 +443,7 @@
         <div class="stat-value" id="t-trades">—</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Active Positions</div>
+        <div class="stat-label">Pending Orders</div>
         <div class="stat-value" id="t-active">—</div>
       </div>
     </div>
@@ -847,12 +847,17 @@ async function loadTrading() {
     const p = d.processes || {};
 
     // Stats
+    const cash = t.cash || t.current_balance || 0;
     const pnl = t.net_pnl || 0;
     const pnlColor = pnl >= 0 ? '#4ade80' : '#f87171';
-    document.getElementById('t-balance').textContent = '$' + (t.current_balance || 0).toFixed(2);
-    document.getElementById('t-pnl').innerHTML = `<span style="color:${pnlColor}">${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${t.pnl_pct || 0}%)</span>`;
-    document.getElementById('t-trades').textContent = t.trade_count || 0;
-    document.getElementById('t-active').textContent = (t.active_positions || []).length;
+    const liveOrders = t.live_orders || [];
+    const recentPos = t.recent_positions || t.active_positions || [];
+
+    document.getElementById('t-balance').textContent = '$' + cash.toFixed(2);
+    document.getElementById('t-pnl').innerHTML =
+      `<span style="color:${pnlColor}">${pnl >= 0 ? '+' : ''}$${Math.abs(pnl).toFixed(2)} (${t.pnl_pct || 0}%)</span>`;
+    document.getElementById('t-trades').textContent = t.total_trades || t.trade_count || 0;
+    document.getElementById('t-active').textContent = liveOrders.length;
 
     // Bot health
     document.getElementById('t-bot-status').innerHTML = p.bot_running
@@ -867,39 +872,43 @@ async function loadTrading() {
         `v${r.version} · ${(r.experiment_count || 0).toLocaleString()} experiments · ${r.improvements || 0} improvements · baseline P&L: $${(r.baseline_pnl || 0).toFixed(2)}`;
     }
 
-    // Active positions
+    // Live orders (pending fills)
     const posEl = document.getElementById('t-positions');
-    const active = t.active_positions || [];
-    if (!active.length) {
-      posEl.innerHTML = '<div class="empty">No active positions — waiting for next signal</div>';
+    if (!liveOrders.length) {
+      posEl.innerHTML = '<div class="empty">No pending orders — bot scanning for signals</div>';
     } else {
-      posEl.innerHTML = active.map(pos => `
+      posEl.innerHTML = liveOrders.map(o => `
         <div class="feed-item">
           <div class="feed-body">
             <div class="feed-meta">
-              <span class="feed-agent" style="color:var(--milo)">${pos.side}</span>
-              <span class="feed-type">$${pos.size}</span>
-              <span class="feed-time">@ ${pos.price}</span>
+              <span class="feed-agent" style="color:var(--milo)">${o.outcome}</span>
+              <span class="feed-type">$${(o.size * o.price).toFixed(2)}</span>
+              <span class="feed-time">@ ${o.price}</span>
+              <span class="feed-type" style="background:#1a3a1a;color:#4ade80">LIVE</span>
             </div>
-            <div class="feed-message">${pos.market}</div>
           </div>
         </div>`).join('');
     }
 
-    // Trade history
-    const trades = (t.trades || []).slice().reverse();
+    // Recent trade activity (last 30h)
+    const trades = (t.trades || recentPos).slice(0, 20);
     const tbody = document.getElementById('t-history');
     if (!trades.length) {
       tbody.innerHTML = '<tr><td colspan="5" class="empty">No trades yet</td></tr>';
     } else {
       tbody.innerHTML = trades.map(tr => {
-        const isResolved = tr.status === 'resolved';
+        const outcome = tr.outcome || tr.side || '?';
+        const ageLabel = tr.age_h != null
+          ? (tr.age_h < 1 ? Math.round(tr.age_h * 60) + 'm ago' : tr.age_h.toFixed(1) + 'h ago')
+          : '';
+        const spent = tr.spent != null ? '$' + tr.spent.toFixed(2) : (tr.size ? '$' + tr.size.toFixed(2) : '—');
+        const isOld = (tr.age_h || 0) > 24;
         return `<tr>
-          <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tr.market}</td>
-          <td><span style="color:${tr.side === 'Yes' ? '#4ade80' : '#f87171'}">${tr.side}</span></td>
-          <td>$${tr.size.toFixed(2)}</td>
-          <td>${tr.price}</td>
-          <td><span class="feed-type" style="${isResolved ? 'background:#1e3a5f;color:#60a5fa' : 'background:#14532d;color:#4ade80'}">${isResolved ? 'resolved' : 'open'}</span></td>
+          <td style="color:var(--muted);font-size:11px;white-space:nowrap">${ageLabel}</td>
+          <td><span style="color:${['Yes','Up'].includes(outcome) ? '#4ade80' : '#60a5fa'}">${outcome}</span></td>
+          <td>${spent}</td>
+          <td style="color:var(--muted)">${tr.price}</td>
+          <td><span class="feed-type" style="${isOld ? 'background:#1e3a5f;color:#60a5fa' : 'background:#14532d;color:#4ade80'}">${isOld ? 'resolved?' : 'open'}</span></td>
         </tr>`;
       }).join('');
     }
