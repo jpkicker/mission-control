@@ -1,7 +1,7 @@
 const TODOIST_TOKEN = process.env.TODOIST_TOKEN;
 
 exports.handler = async () => {
-  const res = await fetch('https://api.todoist.com/rest/v2/tasks', {
+  const res = await fetch('https://api.todoist.com/api/v1/tasks', {
     headers: {
       Authorization: `Bearer ${TODOIST_TOKEN}`,
     },
