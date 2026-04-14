@@ -11,7 +11,9 @@ exports.handler = async () => {
     return { statusCode: res.status, body: JSON.stringify({ error: 'Todoist error' }) };
   }
 
-  const tasks = await res.json();
+  const data = await res.json();
+  // api/v1 returns { results: [...], next_cursor: ... }
+  const tasks = Array.isArray(data) ? data : (data.results || []);
 
   return {
     statusCode: 200,
