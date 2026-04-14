@@ -3,7 +3,7 @@ const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
 exports.handler = async () => {
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/mc_biometrics?order=recorded_at.desc&limit=1`,
+    `${SUPABASE_URL}/rest/v1/mc_biometrics?order=date.desc&limit=1`,
     {
       headers: {
         apikey: SUPABASE_KEY,

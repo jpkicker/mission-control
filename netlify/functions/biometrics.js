@@ -4,10 +4,10 @@ const SUPABASE_KEY = process.env.SUPABASE_KEY;
 exports.handler = async (event) => {
   const days = event.queryStringParameters?.days || 30;
 
-  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/mc_biometrics?order=recorded_at.asc&recorded_at=gte.${since}`,
+    `${SUPABASE_URL}/rest/v1/mc_biometrics?order=date.asc&date=gte.${since}`,
     {
       headers: {
         apikey: SUPABASE_KEY,

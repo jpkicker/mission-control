@@ -659,39 +659,50 @@ async function loadHealth() {
         return { color: '#facc15', label: 'High' };
       });
 
-      setHealth('h-boz', latest.boz_ratio, null, (v) => {
+      setHealth('h-boz', latest.dr_boz_ratio, null, (v) => {
         if (v < 80) return { color: '#4ade80', label: 'Excellent' };
         if (v <= 200) return { color: '#facc15', label: 'Good' };
         return { color: '#f87171', label: 'High' };
       });
 
-      if (latest.weight) {
-        document.getElementById('h-weight').innerHTML = latest.weight + '<span class="health-unit"> lbs</span>';
+      // Weight is stored in notes field e.g. "Weight: 196 lbs"
+      const weightMatch = (latest.notes || '').match(/[Ww]eight:?\s*([\d.]+)/);
+      if (weightMatch) {
+        document.getElementById('h-weight').innerHTML = weightMatch[1] + '<span class="health-unit"> lbs</span>';
       }
     }
 
     if (history.length) {
       const labels = history.map(r => {
-        const d = new Date(r.recorded_at);
-        return (d.getMonth() + 1) + '/' + d.getDate();
+        const [, m, d] = r.date.split('-');
+        return `${parseInt(m)}/${parseInt(d)}`;
       });
 
-      buildChart('chart-glucose', labels, history.map(r => r.glucose), '#6366f1', [
-        { value: 80, color: 'rgba(74,222,128,0.15)' },
-        { value: 100, color: 'rgba(74,222,128,0.15)' },
-      ]);
+      buildChart('chart-glucose', labels, history.map(r => r.glucose), '#6366f1');
       buildChart('chart-ketones', labels, history.map(r => r.ketones), '#10b981');
-      buildChart('chart-boz', labels, history.map(r => r.boz_ratio), '#f59e0b');
-      buildChart('chart-weight', labels, history.map(r => r.weight).filter(Boolean), '#f97316');
+      buildChart('chart-boz', labels, history.map(r => r.dr_boz_ratio), '#f59e0b');
+
+      // Parse weight from notes
+      const weights = history.map(r => {
+        const m = (r.notes || '').match(/[Ww]eight:?\s*([\d.]+)/);
+        return m ? parseFloat(m[1]) : null;
+      });
+      const weightLabels = labels.filter((_, i) => weights[i] != null);
+      const weightValues = weights.filter(Boolean);
+      buildChart('chart-weight', weightLabels, weightValues, '#f97316');
     }
 
-    // Streak
+    // Streak — infer from notes: "recovery post-weekend alcohol" or "alcohol" = break
     if (history.length) {
+      const sorted = [...history].sort((a, b) => b.date.localeCompare(a.date));
       let streak = 0;
-      const sorted = [...history].sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at));
       for (const r of sorted) {
-        if (r.alcohol === false || r.alcohol === 0 || r.alcohol === null) streak++;
-        else break;
+        const notes = (r.notes || '').toLowerCase();
+        const hadAlcohol = /alcohol|drinking|wine|beer|whiskey|drink\b/.test(notes) &&
+                           !/no alcohol/.test(notes) &&
+                           !/day \d+ (no alcohol|clean)/.test(notes);
+        if (hadAlcohol) break;
+        streak++;
       }
       document.getElementById('streak-num').textContent = streak;
     }
