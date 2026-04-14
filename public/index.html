@@ -46,6 +46,7 @@
       left: 0;
       height: 100vh;
       overflow-y: auto;
+      z-index: 100;
     }
 
     .sidebar-logo {
@@ -84,6 +85,55 @@
       flex: 1;
       padding: 32px;
       max-width: 1400px;
+    }
+
+    /* MOBILE NAV */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .mobile-nav::-webkit-scrollbar { display: none; }
+    .mobile-nav-inner {
+      display: flex;
+      padding: 0 8px;
+      white-space: nowrap;
+      min-width: max-content;
+    }
+    .mobile-nav .nav-item {
+      padding: 14px 16px;
+      border-left: none;
+      border-bottom: 3px solid transparent;
+      flex-shrink: 0;
+      font-size: 13px;
+    }
+    .mobile-nav .nav-item.active {
+      background: transparent;
+      border-bottom-color: var(--milo);
+      color: var(--text);
+    }
+
+    @media (max-width: 700px) {
+      .sidebar { display: none; }
+      .mobile-nav { display: block; }
+      .main {
+        margin-left: 0;
+        padding: 16px;
+        padding-top: 64px;
+      }
+      .panels { grid-template-columns: 1fr !important; }
+      .charts-grid { grid-template-columns: 1fr !important; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .agent-grid { grid-template-columns: repeat(2, 1fr); }
+      h1 { font-size: 20px; }
     }
 
     .view { display: none; }
@@ -338,6 +388,16 @@
   <div class="nav-item" data-view="trading">📈 Trading</div>
 </nav>
 
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <div class="nav-item active" data-view="dashboard">🏠 Dashboard</div>
+    <div class="nav-item" data-view="activity">📋 Activity</div>
+    <div class="nav-item" data-view="handoffs">🔁 Handoffs</div>
+    <div class="nav-item" data-view="health">❤️ Health</div>
+    <div class="nav-item" data-view="trading">📈 Trading</div>
+  </div>
+</nav>
+
 <main class="main">
 
   <!-- DASHBOARD -->
@@ -558,14 +618,18 @@
 const navItems = document.querySelectorAll('.nav-item');
 navItems.forEach(item => {
   item.addEventListener('click', () => {
+    const view = item.dataset.view;
     navItems.forEach(n => n.classList.remove('active'));
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    item.classList.add('active');
-    document.getElementById('view-' + item.dataset.view).classList.add('active');
-    if (item.dataset.view === 'health') loadHealth();
-    if (item.dataset.view === 'handoffs') loadHandoffs();
-    if (item.dataset.view === 'activity') loadActivityFull();
-    if (item.dataset.view === 'trading') loadTrading();
+    // Activate all matching nav items (sidebar + mobile)
+    document.querySelectorAll(`.nav-item[data-view="${view}"]`).forEach(n => n.classList.add('active'));
+    document.getElementById('view-' + view).classList.add('active');
+    if (view === 'health') loadHealth();
+    if (view === 'handoffs') loadHandoffs();
+    if (view === 'activity') loadActivityFull();
+    if (view === 'trading') loadTrading();
+    // Scroll to top on mobile
+    window.scrollTo(0, 0);
   });
 });
 
