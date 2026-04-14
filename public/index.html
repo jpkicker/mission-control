@@ -335,6 +335,7 @@
   <div class="nav-item" data-view="activity">📋 Activity</div>
   <div class="nav-item" data-view="handoffs">🔁 Handoffs</div>
   <div class="nav-item" data-view="health">❤️ Health</div>
+  <div class="nav-item" data-view="trading">📈 Trading</div>
 </nav>
 
 <main class="main">
@@ -423,6 +424,69 @@
     <div id="handoffs-list"><div class="empty">Loading…</div></div>
   </div>
 
+  <!-- TRADING -->
+  <div class="view" id="view-trading">
+    <h1>Milo Trading</h1>
+    <p class="subtitle">Polymarket positions · P&L · Research loop · <span id="trading-refresh" class="refresh-badge">Loading…</span></p>
+
+    <div class="stat-grid" id="trading-stats">
+      <div class="stat-card">
+        <div class="stat-label">Balance</div>
+        <div class="stat-value" id="t-balance">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Net P&L</div>
+        <div class="stat-value" id="t-pnl">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Trades</div>
+        <div class="stat-value" id="t-trades">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Positions</div>
+        <div class="stat-value" id="t-active">—</div>
+      </div>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 style="margin:0">Bot Health</h2>
+        </div>
+        <div id="t-health" style="display:flex;gap:16px;padding:8px 0">
+          <span id="t-bot-status">⚪ Bot</span>
+          <span id="t-research-status">⚪ Research</span>
+        </div>
+        <div style="margin-top:12px;color:var(--muted);font-size:12px" id="t-research-detail">—</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2 style="margin:0">Active Positions</h2>
+        </div>
+        <div id="t-positions"><div class="empty">No active positions</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2 style="margin:0">Trade History</h2>
+      </div>
+      <table class="activity-table">
+        <thead>
+          <tr>
+            <th>Market</th>
+            <th>Side</th>
+            <th>Size</th>
+            <th>Price</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="t-history"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- HEALTH -->
   <div class="view" id="view-health">
     <h1>Health Dashboard</h1>
@@ -501,6 +565,7 @@ navItems.forEach(item => {
     if (item.dataset.view === 'health') loadHealth();
     if (item.dataset.view === 'handoffs') loadHandoffs();
     if (item.dataset.view === 'activity') loadActivityFull();
+    if (item.dataset.view === 'trading') loadTrading();
   });
 });
 
@@ -768,6 +833,81 @@ async function loadFoodLog() {
     tbody.innerHTML = '<tr><td colspan="4" class="empty">No food log entries today</td></tr>';
   } catch {
     tbody.innerHTML = '<tr><td colspan="4" class="empty">Could not load food log</td></tr>';
+  }
+}
+
+// ── TRADING ───────────────────────────────────────────────────────────────────
+async function loadTrading() {
+  try {
+    const d = await api('/trading');
+    if (!d) { document.getElementById('trading-refresh').textContent = 'No data yet'; return; }
+
+    const t = d.trading || {};
+    const r = d.research || {};
+    const p = d.processes || {};
+
+    // Stats
+    const pnl = t.net_pnl || 0;
+    const pnlColor = pnl >= 0 ? '#4ade80' : '#f87171';
+    document.getElementById('t-balance').textContent = '$' + (t.current_balance || 0).toFixed(2);
+    document.getElementById('t-pnl').innerHTML = `<span style="color:${pnlColor}">${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${t.pnl_pct || 0}%)</span>`;
+    document.getElementById('t-trades').textContent = t.trade_count || 0;
+    document.getElementById('t-active').textContent = (t.active_positions || []).length;
+
+    // Bot health
+    document.getElementById('t-bot-status').innerHTML = p.bot_running
+      ? '<span style="color:#4ade80">● Bot running</span>'
+      : '<span style="color:#f87171">✗ Bot stopped</span>';
+    document.getElementById('t-research-status').innerHTML = p.research_running
+      ? '<span style="color:#4ade80">● Research running</span>'
+      : '<span style="color:#f87171">✗ Research stopped</span>';
+
+    if (r.version) {
+      document.getElementById('t-research-detail').textContent =
+        `v${r.version} · ${(r.experiment_count || 0).toLocaleString()} experiments · ${r.improvements || 0} improvements · baseline P&L: $${(r.baseline_pnl || 0).toFixed(2)}`;
+    }
+
+    // Active positions
+    const posEl = document.getElementById('t-positions');
+    const active = t.active_positions || [];
+    if (!active.length) {
+      posEl.innerHTML = '<div class="empty">No active positions — waiting for next signal</div>';
+    } else {
+      posEl.innerHTML = active.map(pos => `
+        <div class="feed-item">
+          <div class="feed-body">
+            <div class="feed-meta">
+              <span class="feed-agent" style="color:var(--milo)">${pos.side}</span>
+              <span class="feed-type">$${pos.size}</span>
+              <span class="feed-time">@ ${pos.price}</span>
+            </div>
+            <div class="feed-message">${pos.market}</div>
+          </div>
+        </div>`).join('');
+    }
+
+    // Trade history
+    const trades = (t.trades || []).slice().reverse();
+    const tbody = document.getElementById('t-history');
+    if (!trades.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty">No trades yet</td></tr>';
+    } else {
+      tbody.innerHTML = trades.map(tr => {
+        const isResolved = tr.status === 'resolved';
+        return `<tr>
+          <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tr.market}</td>
+          <td><span style="color:${tr.side === 'Yes' ? '#4ade80' : '#f87171'}">${tr.side}</span></td>
+          <td>$${tr.size.toFixed(2)}</td>
+          <td>${tr.price}</td>
+          <td><span class="feed-type" style="${isResolved ? 'background:#1e3a5f;color:#60a5fa' : 'background:#14532d;color:#4ade80'}">${isResolved ? 'resolved' : 'open'}</span></td>
+        </tr>`;
+      }).join('');
+    }
+
+    document.getElementById('trading-refresh').textContent = 'Updated ' + new Date().toLocaleTimeString();
+  } catch (e) {
+    document.getElementById('trading-refresh').textContent = 'Error loading';
+    console.error(e);
   }
 }
 
