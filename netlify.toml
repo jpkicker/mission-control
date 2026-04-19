@@ -28,6 +28,11 @@
   to = "/.netlify/functions/trading"
   status = 200
 
+[[redirects]]
+  from = "/api/paper-trades"
+  to = "/.netlify/functions/paper-trades"
+  status = 200
+
 [build]
   publish = "public"
   functions = "netlify/functions"

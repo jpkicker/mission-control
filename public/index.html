@@ -486,8 +486,51 @@
 
   <!-- TRADING -->
   <div class="view" id="view-trading">
-    <h1>Milo Trading</h1>
-    <p class="subtitle">Polymarket positions · P&L · Research loop · <span id="trading-refresh" class="refresh-badge">Loading…</span></p>
+    <h1>Trading</h1>
+    <p class="subtitle">Paper trades · Signal tracking · Live bot status · <span id="trading-refresh" class="refresh-badge">Loading…</span></p>
+
+    <!-- PAPER TRADING SECTION -->
+    <h2 style="margin:0 0 16px;font-size:16px;color:var(--text)">📊 Paper Trading — Signal Validation</h2>
+    <div class="stat-grid" id="paper-stats">
+      <div class="stat-card">
+        <div class="stat-label">Win Rate</div>
+        <div class="stat-value" id="pt-winrate">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Resolved Trades</div>
+        <div class="stat-value" id="pt-resolved">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Open Positions</div>
+        <div class="stat-value" id="pt-open">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Paper P&L</div>
+        <div class="stat-value" id="pt-pnl">—</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:24px">
+      <div class="panel-header">
+        <h2 style="margin:0">Recent Paper Trades</h2>
+        <span id="pt-go-live" style="display:none;background:#14532d;color:#4ade80;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:600">🎯 Edge confirmed — review for live trading</span>
+      </div>
+      <table class="activity-table">
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>Signal</th>
+            <th>Side</th>
+            <th>Entry</th>
+            <th>P&L</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="pt-history"><tr><td colspan="6" class="empty">No paper trades yet — scanner starting soon</td></tr></tbody>
+      </table>
+    </div>
+
+    <h2 style="margin:0 0 16px;font-size:16px;color:var(--muted)">Live Bot (paused)</h2>
 
     <div class="stat-grid" id="trading-stats">
       <div class="stat-card">
@@ -900,8 +943,71 @@ async function loadFoodLog() {
   }
 }
 
+// ── PAPER TRADES ─────────────────────────────────────────────────────────────
+async function loadPaperTrades() {
+  try {
+    const d = await api('/paper-trades');
+    const s = d.stats;
+    const trades = d.trades || [];
+
+    if (!s || d.error === 'table_not_ready') {
+      document.getElementById('pt-history').innerHTML =
+        '<tr><td colspan="6" class="empty">Scanner initializing — first picks coming soon</td></tr>';
+      return;
+    }
+
+    // Stats
+    const winRate = s.win_rate ? parseFloat(s.win_rate) : null;
+    const pnl = parseFloat(s.total_pnl || 0);
+    const pnlColor = pnl >= 0 ? '#4ade80' : '#f87171';
+
+    document.getElementById('pt-winrate').innerHTML = winRate !== null
+      ? `<span style="color:${winRate >= 55 ? '#4ade80' : winRate >= 45 ? '#f59e0b' : '#f87171'}">${winRate}%</span>`
+      : '—';
+    document.getElementById('pt-resolved').textContent = s.resolved || 0;
+    document.getElementById('pt-open').textContent = s.open || 0;
+    document.getElementById('pt-pnl').innerHTML =
+      `<span style="color:${pnlColor}">${pnl >= 0 ? '+' : ''}$${Math.abs(pnl).toFixed(2)}</span>`;
+
+    // Go-live badge
+    if (winRate >= 55 && parseInt(s.resolved) >= 20) {
+      document.getElementById('pt-go-live').style.display = 'inline-block';
+    }
+
+    // Trade table
+    const tbody = document.getElementById('pt-history');
+    if (!trades.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">No paper trades yet — scanner running</td></tr>';
+    } else {
+      tbody.innerHTML = trades.slice(0, 20).map(tr => {
+        const isWin = tr.pnl_usdc > 0;
+        const statusLabel = tr.resolved
+          ? `<span style="background:${isWin ? '#14532d' : '#450a0a'};color:${isWin ? '#4ade80' : '#f87171'};padding:2px 6px;border-radius:3px;font-size:11px">${isWin ? 'WIN' : 'LOSS'}</span>`
+          : '<span style="background:#1e3a5f;color:#60a5fa;padding:2px 6px;border-radius:3px;font-size:11px">OPEN</span>';
+        const pnlStr = tr.pnl_usdc != null
+          ? `<span style="color:${tr.pnl_usdc >= 0 ? '#4ade80' : '#f87171'}">${tr.pnl_usdc >= 0 ? '+' : ''}$${tr.pnl_usdc.toFixed(2)}</span>`
+          : '—';
+        const q = (tr.question || '').length > 50 ? tr.question.slice(0, 50) + '…' : (tr.question || '—');
+        return `<tr>
+          <td style="font-size:12px">${q}</td>
+          <td style="color:var(--muted);font-size:11px">${tr.signal_name || '—'}</td>
+          <td><span style="color:${tr.direction === 'yes' ? '#4ade80' : '#60a5fa'}">${(tr.direction || '?').toUpperCase()}</span></td>
+          <td style="color:var(--muted)">${tr.entry_price != null ? tr.entry_price + '¢' : '—'}</td>
+          <td>${pnlStr}</td>
+          <td>${statusLabel}</td>
+        </tr>`;
+      }).join('');
+    }
+  } catch (e) {
+    document.getElementById('pt-history').innerHTML =
+      `<tr><td colspan="6" class="empty">Error loading paper trades</td></tr>`;
+    console.error(e);
+  }
+}
+
 // ── TRADING ───────────────────────────────────────────────────────────────────
 async function loadTrading() {
+  loadPaperTrades();
   try {
     const d = await api('/trading');
     if (!d) { document.getElementById('trading-refresh').textContent = 'No data yet'; return; }
