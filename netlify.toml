@@ -33,6 +33,16 @@
   to = "/.netlify/functions/paper-trades"
   status = 200
 
+[[redirects]]
+  from = "/api/macros"
+  to = "/.netlify/functions/macros"
+  status = 200
+
+[[redirects]]
+  from = "/api/food-log"
+  to = "/.netlify/functions/food-log"
+  status = 200
+
 [build]
   publish = "public"
   functions = "netlify/functions"
