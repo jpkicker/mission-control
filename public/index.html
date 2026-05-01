@@ -1002,10 +1002,15 @@ function buildChart(canvasId, labels, data, color, bands) {
   });
 }
 
+function localDate() {
+  // Use browser local date (not UTC) to match how Vida logs food
+  return new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+}
+
 async function loadFoodLog() {
   const tbody = document.getElementById('food-tbody');
   try {
-    const rows = await api('/food-log');
+    const rows = await api('/food-log?date=' + localDate());
     if (!rows.length) {
       tbody.innerHTML = '<tr><td colspan="3" class="empty">No food logged today</td></tr>';
       return;
@@ -1033,7 +1038,7 @@ async function loadMacros() {
   empty.style.display = 'none';
 
   try {
-    const d = await api('/macros');
+    const d = await api('/macros?date=' + localDate());
 
     loading.style.display = 'none';
 
