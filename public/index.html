@@ -393,6 +393,54 @@
     .macro-pct { font-size: 20px; font-weight: 700; min-width: 48px; text-align: right; }
     .macro-status { font-size: 11px; min-width: 60px; text-align: right; }
     .macro-loading { color: var(--muted); font-size: 13px; padding: 16px 0; }
+
+    /* SPRINT */
+    .dealer-dot {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+    .dealer-tier { margin-bottom: 20px; }
+    .dealer-tier-name {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .dealer-tier-dots { display: flex; flex-wrap: wrap; gap: 6px; }
+    .dealer-cell {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: default;
+    }
+    .dealer-cell:hover { background: var(--bg); }
+
+    .week-bar { margin-bottom: 14px; }
+    .week-bar:last-child { margin-bottom: 0; }
+    .week-bar-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+    .week-bar-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .week-bar-fill { height: 100%; background: var(--milo); transition: width 0.4s ease; }
+
+    .sticker-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .sticker-row:last-child { border-bottom: none; }
+
+    .dod-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; font-size: 13px; }
+    .dod-check { color: var(--muted); width: 16px; flex-shrink: 0; }
+    .dod-check.done { color: #4ade80; }
+    .dod-text.done { text-decoration: line-through; color: var(--muted); }
+
+    .legend-row { display: flex; flex-wrap: wrap; gap: 18px; color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
   </style>
 </head>
 <body>
@@ -404,6 +452,7 @@
   <div class="nav-item" data-view="handoffs">🔁 Handoffs</div>
   <div class="nav-item" data-view="health">❤️ Health</div>
   <div class="nav-item" data-view="trading">📈 Trading</div>
+  <div class="nav-item" data-view="sprint">🛒 Sprint</div>
 </nav>
 
 <nav class="mobile-nav">
@@ -413,6 +462,7 @@
     <div class="nav-item" data-view="handoffs">🔁 Handoffs</div>
     <div class="nav-item" data-view="health">❤️ Health</div>
     <div class="nav-item" data-view="trading">📈 Trading</div>
+    <div class="nav-item" data-view="sprint">🛒 Sprint</div>
   </div>
 </nav>
 
@@ -727,6 +777,63 @@
     </div>
   </div>
 
+  <!-- SPRINT (Florida Fast + Boxa) -->
+  <div class="view" id="view-sprint">
+    <h1>Florida Fast + Boxa Sprint</h1>
+    <p class="subtitle">90-day program rollout · Sprint window 5/4 – 5/29 · <span id="sprint-refresh" class="refresh-badge">Loading…</span></p>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Stops Complete</div>
+        <div class="stat-value"><span id="sprint-done">—</span><span style="color:var(--muted);font-size:18px"> / <span id="sprint-total">—</span></span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">% Complete</div>
+        <div class="stat-value" id="sprint-pct">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Days to W4 Close</div>
+        <div class="stat-value" id="sprint-days">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Quotes</div>
+        <div class="stat-value" id="sprint-quotes">—</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:24px">
+      <h2>Weekly Progress</h2>
+      <div id="sprint-weekly"><div class="empty">Loading…</div></div>
+    </div>
+
+    <div class="panel" style="margin-bottom:24px">
+      <h2>Dealer Status</h2>
+      <div class="legend-row">
+        <span class="legend-item"><span class="dealer-dot" style="background:#64748b"></span>Not visited</span>
+        <span class="legend-item"><span class="dealer-dot" style="background:#facc15"></span>Stickered</span>
+        <span class="legend-item"><span class="dealer-dot" style="background:#4ade80"></span>Quoting against new pricing</span>
+        <span class="legend-item"><span class="dealer-dot" style="background:#f87171"></span>Blocked</span>
+      </div>
+      <div id="sprint-dealers"><div class="empty">Loading…</div></div>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <h2>Sticker Rollup</h2>
+        <div id="sprint-stickers"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="panel">
+        <h2>Gap-Fill Orders</h2>
+        <div id="sprint-gapfill"><div class="empty">Loading…</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Definition of Done (Fri 5/29)</h2>
+      <div id="sprint-dod"><div class="empty">Loading…</div></div>
+    </div>
+  </div>
+
 </main>
 
 <script>
@@ -744,6 +851,7 @@ navItems.forEach(item => {
     if (view === 'handoffs') loadHandoffs();
     if (view === 'activity') loadActivityFull();
     if (view === 'trading') loadTrading();
+    if (view === 'sprint') loadSprint();
     // Scroll to top on mobile
     window.scrollTo(0, 0);
   });
@@ -1253,6 +1361,160 @@ async function loadTrading() {
     document.getElementById('trading-refresh').textContent = 'Error loading';
     console.error(e);
   }
+}
+
+// ── SPRINT (Florida Fast + Boxa) ──────────────────────────────────────────────
+const SPRINT_CLOSE_ISO = '2026-05-29T17:00:00';
+const SPRINT_WEEK_LABELS = { W1: '5/4 – 5/8', W2: '5/11', W3: '5/18 – 5/22', W4: '5/26 – 5/29' };
+const SPRINT_STATUS_COLORS = {
+  pending: '#64748b', stickered: '#facc15', quoting: '#4ade80', blocked: '#f87171',
+};
+
+async function loadSprint() {
+  const refreshEl = document.getElementById('sprint-refresh');
+  refreshEl.textContent = 'Loading…';
+  try {
+    const res = await fetch('/data/ff-boxa-tracker.csv?ts=' + Date.now());
+    if (!res.ok) throw new Error(res.statusText);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    renderSprint(rows);
+    refreshEl.textContent = 'Updated ' + new Date().toLocaleTimeString();
+  } catch (e) {
+    refreshEl.textContent = 'Failed to load tracker';
+    console.error('Sprint load failed:', e);
+  }
+}
+
+function parseCSV(text) {
+  const lines = text.replace(/\r/g, '').trim().split('\n');
+  if (!lines.length) return [];
+  const headers = parseCSVLine(lines[0]);
+  return lines.slice(1).map(line => {
+    const cells = parseCSVLine(line);
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (cells[i] ?? '').trim(); });
+    return obj;
+  });
+}
+
+function parseCSVLine(line) {
+  const cells = [];
+  let cur = '', inQuote = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQuote = !inQuote; }
+    else if (c === ',' && !inQuote) { cells.push(cur); cur = ''; }
+    else { cur += c; }
+  }
+  cells.push(cur);
+  return cells;
+}
+
+function dealerStatus(row) {
+  if ((row.Status || '').toLowerCase() === 'blocked') return 'blocked';
+  const ff = parseInt(row.FF_Stickers_Placed) || 0;
+  const boxa = parseInt(row.Boxa_Stickers_Placed) || 0;
+  const quoted = (row.Active_Job_Quoted || '').trim().toUpperCase().startsWith('Y');
+  if (quoted) return 'quoting';
+  const status = (row.Status || '').toLowerCase();
+  if (ff + boxa > 0 || status === 'visited' || status === 'completed') return 'stickered';
+  return 'pending';
+}
+
+function renderSprint(rows) {
+  const total = rows.length;
+  const completedCount = rows.filter(r => {
+    const s = dealerStatus(r);
+    return s === 'stickered' || s === 'quoting';
+  }).length;
+  const quotes = rows.filter(r => (r.Active_Job_Quoted || '').toUpperCase().startsWith('Y')).length;
+  const pct = total ? Math.round(completedCount / total * 100) : 0;
+  const daysLeft = Math.max(0, Math.ceil((new Date(SPRINT_CLOSE_ISO) - Date.now()) / 86400000));
+
+  document.getElementById('sprint-done').textContent = completedCount;
+  document.getElementById('sprint-total').textContent = total;
+  document.getElementById('sprint-pct').textContent = pct + '%';
+  document.getElementById('sprint-days').textContent = daysLeft;
+  document.getElementById('sprint-quotes').textContent = quotes;
+
+  // Weekly bars
+  const weeklyEl = document.getElementById('sprint-weekly');
+  weeklyEl.innerHTML = ['W1', 'W2', 'W3', 'W4'].map(w => {
+    const planned = rows.filter(r => r.Planned_Week === w).length;
+    const done = rows.filter(r => r.Planned_Week === w && ['stickered', 'quoting'].includes(dealerStatus(r))).length;
+    const wpct = planned ? (done / planned * 100) : 0;
+    return `<div class="week-bar">
+      <div class="week-bar-label">
+        <span><strong>${w}</strong> <span style="color:var(--muted)">${SPRINT_WEEK_LABELS[w] || ''}</span></span>
+        <span style="color:var(--muted)">${done} / ${planned}</span>
+      </div>
+      <div class="week-bar-track"><div class="week-bar-fill" style="width:${wpct}%"></div></div>
+    </div>`;
+  }).join('');
+
+  // Dealer tiers
+  const tiers = [
+    { name: 'Dual-Program (FF + Boxa)', filter: r => r.Programs === 'FF+Boxa' },
+    { name: 'JEK / Dolphin (FF-only)', filter: r => r.Dealer === 'JEK' },
+    { name: 'Quantum Floors (FF-only)', filter: r => r.Dealer === 'Quantum Floors' },
+    { name: 'Standalone FF-only', filter: r => r.Programs === 'FF' && r.Dealer !== 'JEK' && r.Dealer !== 'Quantum Floors' },
+  ];
+  const dealersEl = document.getElementById('sprint-dealers');
+  dealersEl.innerHTML = tiers.map(t => {
+    const tierRows = rows.filter(t.filter);
+    const cells = tierRows.map(r => {
+      const status = dealerStatus(r);
+      const color = SPRINT_STATUS_COLORS[status];
+      const fullLabel = `${r.Dealer} – ${r.Location} (${status}${r.Visit_Date ? ', visited ' + r.Visit_Date : ''})`;
+      return `<span class="dealer-cell" title="${fullLabel.replace(/"/g, '&quot;')}">
+        <span class="dealer-dot" style="background:${color}"></span>${r.Location || r.Dealer}
+      </span>`;
+    }).join('');
+    return `<div class="dealer-tier">
+      <div class="dealer-tier-name">${t.name} (${tierRows.length})</div>
+      <div class="dealer-tier-dots">${cells || '<span style="color:var(--muted);font-size:12px">none</span>'}</div>
+    </div>`;
+  }).join('');
+
+  // Sticker rollup
+  const ffTotal = rows.reduce((s, r) => s + (parseInt(r.FF_Stickers_Placed) || 0), 0);
+  const boxaTotal = rows.reduce((s, r) => s + (parseInt(r.Boxa_Stickers_Placed) || 0), 0);
+  document.getElementById('sprint-stickers').innerHTML = `
+    <div class="sticker-row"><span>FF stickers placed</span><strong>${ffTotal}</strong></div>
+    <div class="sticker-row"><span>Boxa stickers placed</span><strong>${boxaTotal}</strong></div>
+    <div class="sticker-row"><span>Combined</span><strong>${ffTotal + boxaTotal}</strong></div>
+    <div class="sticker-row" style="color:var(--muted);font-size:12px"><span>Pitch delivered</span><span>${rows.filter(r => (r.Pitch_Delivered || 'none') !== 'none').length} / ${total} stops</span></div>
+  `;
+
+  // Gap-fill
+  const gaps = rows.filter(r => (r.Gap_Fill_Ordered || '').toUpperCase().startsWith('Y'));
+  const gapsEl = document.getElementById('sprint-gapfill');
+  gapsEl.innerHTML = gaps.length
+    ? gaps.map(r => `<div class="sticker-row">
+        <span>${r.Dealer} – ${r.Location}</span>
+        <span style="color:var(--muted);font-size:12px">${r.Gap_Fill_Ordered}</span>
+      </div>`).join('')
+    : '<div class="empty">No gap-fill orders placed yet</div>';
+
+  // DoD checklist
+  const tierDone = (filter, target) => rows.filter(r => filter(r) && ['stickered', 'quoting'].includes(dealerStatus(r))).length === target;
+  const dod = [
+    { label: 'All 12 dual-program retail locations stickered (K&P ×3, Capitol ×5, Don Bailey ×4)', done: tierDone(r => r.Programs === 'FF+Boxa', 12) },
+    { label: 'All 9 JEK retail locations visited (FF stickers only)', done: tierDone(r => r.Dealer === 'JEK', 9) },
+    { label: 'All 6 Quantum retail locations visited', done: tierDone(r => r.Dealer === 'Quantum Floors', 6) },
+    { label: 'All standalone FF-only dealers visited', done: tierDone(r => r.Programs === 'FF' && r.Dealer !== 'JEK' && r.Dealer !== 'Quantum Floors', rows.filter(r => r.Programs === 'FF' && r.Dealer !== 'JEK' && r.Dealer !== 'Quantum Floors').length) },
+    { label: '≥5 dealers actively quoting against new pricing', done: quotes >= 5 },
+    { label: 'Gap-fill orders placed for missing styles (Pantheon HD+, Fresh Take)', done: gaps.length > 0 },
+    { label: 'Master_Data.csv cleanup executed (Fri 5/29)', done: false },
+    { label: 'Project status flipped to completed', done: false },
+  ];
+  document.getElementById('sprint-dod').innerHTML = dod.map(it => `
+    <div class="dod-item">
+      <span class="dod-check ${it.done ? 'done' : ''}">${it.done ? '✓' : '○'}</span>
+      <span class="dod-text ${it.done ? 'done' : ''}">${it.label}</span>
+    </div>
+  `).join('');
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────

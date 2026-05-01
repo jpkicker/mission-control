@@ -1,0 +1,40 @@
+Dealer,Location,Address,Travel_Day,Programs,Planned_Week,Status,Visit_Date,FF_Stickers_Placed,Boxa_Stickers_Placed,Pitch_Delivered,Gap_Fill_Ordered,Active_Job_Quoted,Notes
+K&P Capital,Stuart,1703 Nw Federal Hwy Stuart FL 34994,DAY 1,FF+Boxa,W1,not_started,,0,0,none,N,N,
+K&P Capital,Plantation,12121 W Sunrise Blvd Plantation FL 33323,DAY 4A,FF+Boxa,W3,not_started,,0,0,none,N,N,NEW location - add to Master_Data on Fri 5/29
+K&P Capital,Melbourne,3770 W New Haven Ave Melbourne FL 32904,DAY ZZ,FF+Boxa,W4,not_started,,0,0,none,N,N,Out-of-territory Brevard solo run Wed 5/27 (~3hr each way)
+Capitol Carpet,Boynton/Jog,9828 Jog Rd Boynton Beach FL,DAY 3B,FF+Boxa,W1,not_started,,0,0,none,N,N,
+Capitol Carpet,Delray,1350 Linton Blvd Delray Beach FL,DAY 3A,FF+Boxa,W1,not_started,,0,0,none,N,N,
+Capitol Carpet,Boca,9825 Glades Rd Boca Raton FL,DAY 3A,FF+Boxa,W1,not_started,,0,0,none,N,N,
+Capitol Carpet,PGA,2450 PGA Boulevard Palm Beach Gardens FL,DAY 2A,FF+Boxa,W2,not_started,,0,0,none,N,N,
+Capitol Carpet,Wellington,165 S State Rd 7 Wellington FL,DAY 2B,FF+Boxa,W4,not_started,,0,0,none,N,N,
+Don Bailey,7th Ave,14831 NW 7th Ave Miami FL 33168,DAY 6A,FF+Boxa,W1,not_started,,0,0,none,N,N,Canonical record acct 26968
+Don Bailey,Biscayne,8300 Biscayne Blvd Miami FL 33138,DAY 6A,FF+Boxa,W1,not_started,,0,0,none,N,N,Canonical record acct 26968 (drop dup acct 3612171)
+Don Bailey,Fort Lauderdale (MLK),1283 NW 31st Ave Fort Lauderdale FL 33311,DAY 5B,FF+Boxa,W3,not_started,,0,0,none,N,N,
+Don Bailey,Miramar,2208 S State Road 7 Miramar FL 33023,DAY 5B,FF+Boxa,W3,not_started,,0,0,none,N,N,
+JEK,Coral Springs,1330 N University Dr Coral Springs FL,DAY 4A,FF,W3,not_started,,0,0,none,N,N,FF-only (JEK not on Boxa)
+JEK,Davie,2224 S University Dr Davie FL,DAY 5A,FF,W3,not_started,,0,0,none,N,N,FF-only
+JEK,Oakland Park,290 E Oakland Park Blvd Fort Lauderdale FL,DAY 5A,FF,W3,not_started,,0,0,none,N,N,FF-only
+JEK,Doral/77th Ct HQ,3550 NW 77 Ct Doral FL 33122,DAY 6B,FF,W1,not_started,,0,0,none,N,N,FF-only - canonical acct 1720 (drop 2 dupes)
+JEK,Pembroke Pines,172 N University Dr Pembroke Pines FL,DAY 5B,FF,W3,not_started,,0,0,none,N,N,FF-only
+JEK,The Falls,8791 SW 133rd St Miami FL,DAY 6C,FF,W3,not_started,,0,0,none,N,N,FF-only
+JEK,West Kendall,12770 SW 88th St Miami FL,DAY 6C,FF,W3,not_started,,0,0,none,N,N,FF-only
+JEK,North Miami,15901 Biscayne Blvd North Miami FL,DAY 6A,FF,W1,not_started,,0,0,none,N,N,FF-only
+JEK,Deerfield,1471 W Hillsboro Blvd Deerfield Beach FL,DAY 4B,FF,W3,not_started,,0,0,none,N,N,FF-only - drive-by during DAY 4A run
+Quantum Floors,Boca (hub),1086 S Rogers Cir Ste 9 Boca Raton FL 33487,DAY 3A,FF,W4,not_started,,0,0,none,N,N,Hub - close-out visit
+Quantum Floors,Stuart,2760 NW Federal Hwy Stuart FL 34994,DAY 1,FF,W1,not_started,,0,0,none,N,N,
+Quantum Floors,Boynton Town Center,1034 Gateway Blvd #103 Boynton Beach FL 33426,DAY 3B,FF,W1,not_started,,0,0,none,N,N,
+Quantum Floors,Palm Beach Gardens,7100 Fairway Dr #57 Palm Beach Gardens FL 33418,DAY 2A,FF,W2,not_started,,0,0,none,N,N,
+Quantum Floors,Coconut Creek,4450 N State Rd 7 #6 Coconut Creek FL 33073,DAY 4A,FF,W3,not_started,,0,0,none,N,N,
+Quantum Floors,Oakland Park,139 E Oakland Park Blvd Fort Lauderdale FL 33334,DAY 5A,FF,W3,not_started,,0,0,none,N,N,Listed as FT LAUDERDALE in Master_Data (same address)
+Design Wholesale,Stuart,888 SW Federal Hwy Stuart FL 34994,DAY 1,FF,W1,not_started,,0,0,none,N,N,
+We'll Floor You,Stuart,2772 SE Monroe St Stuart FL 34997,DAY 1,FF,W1,not_started,,0,0,none,N,N,
+Floor It 4 Less,Jupiter,951 N Alternate A1a Jupiter FL 33477,DAY 2A,FF,W2,not_started,,0,0,none,N,N,
+Treasure Coast Carpet,Tequesta,150 N US 1 Ste 21 Tequesta FL 33469,DAY 2A,FF,W2,not_started,,0,0,none,N,N,
+Brewer West Palm Beach,WPB,7479 Central Industrial Dr West Palm Beach FL 33404,DAY 2B,FF,W4,not_started,,0,0,none,N,N,Master_Data lists as DAY 2A; routed to 2B for Wellington pairing
+Price Flooring,Delray,2001 W Atlantic Ave Delray Beach FL 33445,DAY 3A,FF,W1,not_started,,0,0,none,N,N,
+Kuhn Flooring Gallery,Coral Springs,12504 Wiles Rd Coral Springs FL 33076,DAY 4A,FF,W3,not_started,,0,0,none,N,N,Canonical acct 28743 (drop typo dup 210309)
+Southland Floors,Pompano,2701 NW 17th Ln Pompano Beach FL 33064,DAY 4B,FF,W1,not_started,,0,0,none,N,N,Tue 5/5 already set
+J & J Ps of Pompano,Pompano,W Atlantic Blvd Pompano Beach FL 33069,DAY 4B,FF,W1,not_started,,0,0,none,N,N,W1 if time else W3 flex
+Jc Tile Corporation,Lauderdale Lakes,3400 N State Rd 7 Lauderdale Lakes FL 33319,DAY 5A,FF,W3,not_started,,0,0,none,N,N,
+Lynda Carpet,Miami,4301 SW 8th St Miami FL 33134,DAY 6B,FF,W3,not_started,,0,0,none,N,N,Target tier
+Pride Flooring & Home Decor,Miami,10790 SW 184th St Miami FL 33157,DAY 6C,FF,W3,not_started,,0,0,none,N,N,Canonical acct 167594 (drop dup acct 210010)
